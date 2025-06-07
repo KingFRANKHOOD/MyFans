@@ -708,6 +708,8 @@ fn test_fee_splitting_on_subscribe() {
     start_cheat_caller_address(setup_res.erc20_contract_address, setup_res.fan1_address);
     erc20_dispatcher.approve(setup_res.myfans_contract_address, SUBSCRIPTION_FEE);
     stop_cheat_caller_address(setup_res.erc20_contract_address);
+    
+    let mut subscribe_spy = spy_events();
 
     // Fan1 subscribes to Creator1
     start_cheat_caller_address(setup_res.myfans_contract_address, setup_res.fan1_address);
@@ -744,28 +746,8 @@ fn test_fee_splitting_on_subscribe() {
     );
 
     // The MyFans contract should not hold any of the subscription fee after splitting
-    // (except potentially dust if division wasn't perfect, but with 10% of 10*10^18 it should be
-    // exact)
     assert_eq!(myfans_contract_erc20_balance, 0, "contract balance should be 0");
 
-    // Verify event emissions
-    let expected_platform_fee_event = myfans::MyFans::Event::PlatformFeePaid(
-        myfans::MyFans::PlatformFeePaid {
-            subscriber: setup_res.fan1_address,
-            creator: setup_res.creator1_address,
-            platform: setup_res.platform_address,
-            amount: PLATFORM_FEE_AMOUNT,
-            total_fee: SUBSCRIPTION_FEE,
-        },
-    );
 
-    let expected_creator_share_event = myfans::MyFans::Event::CreatorShareDeposited(
-        myfans::MyFans::CreatorShareDeposited {
-            subscriber: setup_res.fan1_address,
-            creator: setup_res.creator1_address,
-            amount: CREATOR_SHARE_AMOUNT,
-            total_fee: SUBSCRIPTION_FEE,
-        },
-    );
 }
 
